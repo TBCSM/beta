@@ -178,12 +178,7 @@
           const [progress, setProgress] = useState(0);
           
           // 系統開放狀態控制：預設皆開
-          const [systemConfig, setSystemConfig] = useState({
-    current: true,
-    next: false,
-    currentQuarter: '',
-    nextQuarter: ''
-}); 
+          const [systemConfig, setSystemConfig] = useState({ current: true, next: false }); 
           const [seasonType, setSeasonType] = useState('view'); 
           const seasonLabels = useMemo(() => getSeasonLabels(), []);
 
@@ -212,38 +207,6 @@
 
                     // 🟢 尋找 SYSTEM_CONFIG 解析開關狀態
                     const configMember = membersData.find(m => m.name === 'SYSTEM_CONFIG');
-
-if (configMember) {
-
-    const status = configMember.availability_status || 'CURRENT';
-
-    const parsedConfig = {
-        current: status === 'BOTH' || status === 'CURRENT',
-        next: status === 'BOTH' || status === 'NEXT',
-
-        currentQuarter: configMember.current_quarter || '',
-        nextQuarter: configMember.next_quarter || ''
-    };
-
-    setSystemConfig(parsedConfig);
-
-    if (parsedConfig.current) {
-        setSeasonType('view');
-    } else if (parsedConfig.next) {
-        setSeasonType('next');
-    }
-
-} else {
-
-    setSystemConfig({
-        current: true,
-        next: false,
-        currentQuarter: '',
-        nextQuarter: ''
-    });
-
-    setSeasonType('view');
-}
                     if (configMember) {
                         const status = configMember.availability_status || 'CURRENT';
                         const parsedConfig = {
@@ -323,10 +286,9 @@ if (configMember) {
 
               const today = new Date();
               today.setHours(0, 0, 0, 0);
-              const targetQStr =
-  seasonType === 'view'
-    ? systemConfig.currentQuarter
-    : systemConfig.nextQuarter;
+              const targetQStr = seasonType === 'view' 
+                  ? getQuarterStr(today) 
+                  : getQuarterStr(new Date(today.getFullYear(), today.getMonth() + 3, 1));
 
               const transformedPeople = membersData
                 .filter(m => m.name && !m.name.startsWith('SYSTEM_')) 
@@ -408,7 +370,7 @@ if (configMember) {
               setProgress(100);
               setSyncStatus('同步成功');
               setTimeout(() => setIsSyncing(false), 500);
-          }, [rawData, seasonType, systemConfig]); 
+          }, [rawData, seasonType]); 
 
           useEffect(() => {
             if (!savedUser && currentView === 'login') {
@@ -468,7 +430,7 @@ if (configMember) {
               case 'swapSearch': 
                   return <SwapSearchView 
                       name={name} scheduleData={scheduleData} peopleData={peopleData} statsData={statsData} 
-                      onBack={() => setCurrentView('mySchedule')} onLogout={handleLogout} systemConfig={systemConfig}
+                      onBack={() => setCurrentView('mySchedule')} onLogout={handleLogout} 
                       initialRequest={swapRequest} seasonType={seasonType} seasonLabels={seasonLabels} 
                   />;
               default: return null;
@@ -559,11 +521,9 @@ if (configMember) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const targetQStr = getTargetQuarter(
-    seasonType,
-    systemConfig,
-    today
-);
+            const targetQStr = seasonType === 'view' 
+                ? getQuarterStr(today) 
+                : getQuarterStr(new Date(today.getFullYear(), today.getMonth() + 3, 1));
 
             scheduleData.forEach(row => {
               const dateStr = normalizeDateStr(row['日期']);
@@ -754,18 +714,7 @@ if (configMember) {
           );
         }
 
-        function SwapSearchView({
-    name,
-    scheduleData,
-    peopleData,
-    statsData,
-    onBack,
-    onLogout,
-    initialRequest,
-    seasonType,
-    seasonLabels,
-    systemConfig
-}) {
+        function SwapSearchView({ name, scheduleData, peopleData, statsData, onBack, onLogout, initialRequest, seasonType, seasonLabels }) {
           const [selectedDate, setSelectedDate] = useState(initialRequest?.date || '');
           const [selectedRole, setSelectedRole] = useState(initialRequest?.role || '');
           const [selectedSession, setSelectedSession] = useState(initialRequest?.session || '');
@@ -812,11 +761,9 @@ if (configMember) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            const targetQStr = getTargetQuarter(
-    seasonType,
-    systemConfig,
-    today
-);
+            const targetQStr = seasonType === 'view' 
+                ? getQuarterStr(today) 
+                : getQuarterStr(new Date(today.getFullYear(), today.getMonth() + 3, 1));
 
             const seasonStats = {};
             scheduleData.forEach(row => {
