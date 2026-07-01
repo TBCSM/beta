@@ -57,8 +57,8 @@
         import { createClient } from '@supabase/supabase-js';
 
         // --- Supabase 初始化設定 ---
-        const SUPABASE_URL = "https://jtjgqrqbewbgxscytkod.supabase.co";
-        const SUPABASE_KEY = "sb_publishable_TcixlGOMSLBSZNoMNOp6Ng_B-N4Tw1K";
+        const SUPABASE_URL = "https://iwmkzsredvbgcqvqlayn.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_GwDMLoXcHaTzQDCcQlDuGw_4J9mwiaA";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
         
         // --- 儲存輔助函式 ---
@@ -190,22 +190,10 @@
                 setProgress(10);
 
                 try {
-                    // 🛡️ 靜默登入公用唯讀帳號
-                    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-                        email: 'viewer@tbc.gmail.com',
-                        password: 'Tbc_public_viewer_2026!'
-                    });
-
-                    if (authError) {
-                        console.error("授權連線失敗", authError);
-                        setSyncStatus('連線異常，稍後再試');
-                        setTimeout(() => setIsSyncing(false), 500);
-                        return;
-                    }
-
-                    // 步驟 B - 開始抓取資料
+                   
+                  // 步驟 B - 開始抓取資料
                     const [membersData, positionsData, memberPositionsData, quarterSettingsData] = await Promise.all([
-                        fetchAll('members', '*'),
+                        fetchAll('vw_public_members', '*'),
                         fetchAll('positions', '*'),
                         fetchAll('member_positions', '*'),
                         fetchAll('member_quarter_settings', '*')
